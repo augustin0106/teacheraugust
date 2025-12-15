@@ -15,7 +15,7 @@
     <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Firebase Compat SDKs (Non-Module for file:// support) -->
+    <!-- Firebase Compat SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -38,18 +38,6 @@
         .animate-fade-in {
             animation: fade-in 0.5s ease-out forwards;
         }
-        .perspective-1000 {
-            perspective: 1000px;
-        }
-        .transform-style-3d {
-            transform-style: preserve-3d;
-        }
-        .backface-hidden {
-            backface-visibility: hidden;
-        }
-        .rotate-y-180 {
-            transform: rotateY(180deg);
-        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-indigo-50 to-blue-100 min-h-screen font-sans text-gray-800">
@@ -60,17 +48,10 @@
         // --- CONFIGURATION ---
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2t756NbVZUpDkbbXl1t6oRlUdbzzFUKnA76ywbimZ4aWCDFI4PSJYU4OsWS6UxVIWOw/exec";
         
-        // --- FIREBASE INIT (Compat Mode) ---
-        // 注意：這裡使用全域變數 __firebase_config 和 __app_id，如果是在本地執行，這些可能未定義
-        // 為了確保本地也能跑，我們需要一個 fallback 或請您填入 config
-        // 但因為這是生成環境，我會嘗試讀取，若無則使用預設結構避免報錯（但無法連線資料庫）
-        
-        let firebaseApp;
-        let db;
-        let auth;
-        let appId = 'chem-game-local';
+        // --- FIREBASE INIT ---
+        let firebaseApp, db, auth;
+        const appId = 'chem-game-html-final';
 
-        // 嘗試讀取環境變數，若失敗則使用空的 config (這會導致無法連線，但在本地預覽是正常的)
         try {
             const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
                 apiKey: "YOUR_API_KEY_HERE_IF_LOCAL",
@@ -81,9 +62,6 @@
                 appId: "APP_ID"
             };
             
-            if (typeof __app_id !== 'undefined') appId = __app_id;
-
-            // Initialize Firebase
             if (!firebase.apps.length) {
                 firebaseApp = firebase.initializeApp(firebaseConfig);
             } else {
@@ -92,13 +70,11 @@
             db = firebase.firestore();
             auth = firebase.auth();
         } catch (e) {
-            console.warn("Firebase Init Warning (Local Mode):", e);
-            // Mock DB for UI testing if firebase fails
-            db = null; 
-            auth = null;
+            console.warn("Firebase Init Warning:", e);
+            db = null; auth = null;
         }
 
-        // --- ICONS (SVG Components) ---
+        // --- ICONS ---
         const Icons = {
             Atom: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5Z"/><path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5Z"/></svg>,
             Beaker: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 3h15"/><path d="M6 3v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V3"/><path d="M6 14h12"/></svg>,
@@ -196,25 +172,36 @@
             <button
                 onClick={onClick}
                 disabled={isFlipped || isMatched}
-                className={`
-                    relative w-24 h-32 m-2 rounded-xl shadow-md transition-all duration-300 transform perspective-1000 transform-style-3d
-                    ${isMatched ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'}
-                    ${isFlipped ? 'rotate-y-180' : ''}
-                `}
+                className={`relative w-24 h-32 m-2 rounded-xl shadow-md transition-all duration-300 ${isMatched ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'}`}
+                style={{
+                    transformStyle: 'preserve-3d',
+                    transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                    transition: 'transform 0.5s'
+                }}
             >
-                {/* Front (Hidden state, shows Logo) */}
-                <div className={`
-                    absolute inset-0 w-full h-full bg-indigo-600 rounded-xl flex items-center justify-center backface-hidden transition-all duration-300
-                    ${isFlipped ? 'opacity-0' : 'opacity-100'}
-                `}>
+                {/* Front (Logo) */}
+                <div 
+                    className="absolute inset-0 w-full h-full bg-indigo-600 rounded-xl flex items-center justify-center"
+                    style={{
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden',
+                        transform: 'rotateY(0deg)', // Explicitly 0
+                        opacity: isFlipped ? 0 : 1 // Fallback opacity for browsers that struggle with backface
+                    }}
+                >
                     <div className="text-white opacity-50"><Icons.Atom /></div>
                 </div>
 
-                {/* Back (Revealed state, shows Content) - rotated 180 initially */}
-                <div className={`
-                    absolute inset-0 w-full h-full bg-white border-2 border-indigo-200 rounded-xl flex flex-col items-center justify-center backface-hidden transition-all duration-300 rotate-y-180
-                    ${isFlipped ? 'opacity-100' : 'opacity-0'}
-                `}>
+                {/* Back (Content) */}
+                <div 
+                    className="absolute inset-0 w-full h-full bg-white border-2 border-indigo-200 rounded-xl flex flex-col items-center justify-center"
+                    style={{
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden',
+                        transform: 'rotateY(180deg)', // Pre-rotated 180deg so when parent rotates 180, this becomes 360(0)
+                        opacity: isFlipped ? 1 : 0 // Fallback opacity
+                    }}
+                >
                     <span className={`${type === 'formula' || type === 'symbol' ? 'text-2xl font-bold font-mono text-indigo-700' : 'text-lg font-bold text-gray-800'}`}>
                         {content}
                     </span>
