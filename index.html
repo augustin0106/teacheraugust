@@ -93,7 +93,7 @@
             { symbol: 'H', name: '氫', group: '1A', period: 1 }, { symbol: 'Li', name: '鋰', group: '1A', period: 2 },
             { symbol: 'Na', name: '鈉', group: '1A', period: 3 }, { symbol: 'K', name: '鉀', group: '1A', period: 4 },
             { symbol: 'Rb', name: '銣', group: '1A', period: 5 }, { symbol: 'Cs', name: '銫', group: '1A', period: 6 },
-            { symbol: 'Fr', name: '鍅', group: '1A', period: 7 },
+            { symbol: 'Fr', name: '鈁', group: '1A', period: 7 },
             { symbol: 'Be', name: '鈹', group: '2A', period: 2 }, { symbol: 'Mg', name: '鎂', group: '2A', period: 3 },
             { symbol: 'Ca', name: '鈣', group: '2A', period: 4 }, { symbol: 'Sr', name: '鍶', group: '2A', period: 5 },
             { symbol: 'Ba', name: '鋇', group: '2A', period: 6 }, { symbol: 'Ra', name: '鐳', group: '2A', period: 7 },
@@ -509,7 +509,7 @@
 
             const handleStartGame = (type) => {
                 if (!playerName.trim()) {
-                    alert("你還沒輸入班級座號喔!";
+                    alert("請先輸入您的名字！");
                     return;
                 }
                 setActiveGame(type);
@@ -576,8 +576,8 @@
                         <div className="w-full max-w-md animate-fade-in bg-white p-8 rounded-2xl shadow-xl text-center">
                             <h2 className="text-2xl font-bold mb-6 text-gray-800">準備好挑戰了嗎？</h2>
                             <div className="mb-6 text-left">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">輸入班級座號，登分時會登記你的最高紀錄^_^~</label>
-                                <input type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value)} placeholder="例如：80567" className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                <label className="block text-sm font-medium text-gray-700 mb-2">請輸入您的名字</label>
+                                <input type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value)} placeholder="例如：王小明" className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none" />
                             </div>
                             <div className="space-y-3">
                                 <button onClick={() => handleStartGame(GAME_TYPES.MEMORY_ELEMENTS)} className="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-bold shadow-lg flex items-center justify-between px-6 hover:scale-[1.02] transition">
