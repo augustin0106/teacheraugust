@@ -15,7 +15,7 @@
     <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Firebase Compat SDKs -->
+    <!-- Firebase Compat SDKs (保留 Firebase 作為備用或未來擴充，若不使用可忽略) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -38,6 +38,21 @@
         .animate-fade-in {
             animation: fade-in 0.5s ease-out forwards;
         }
+        /* Custom Scrollbar for Leaderboard */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c7c7c7;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-indigo-50 to-blue-100 min-h-screen font-sans text-gray-800">
@@ -46,22 +61,18 @@
 
     <script type="text/babel">
         // --- CONFIGURATION ---
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz2t756NbVZUpDkbbXl1t6oRlUdbzzFUKnA76ywbimZ4aWCDFI4PSJYU4OsWS6UxVIWOw/exec";
+        // 更新為您最新的 GAS 部署網址 (2024 Latest Update)
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDcFXSzXuxV5XDhN-9EXNE6rD2q81LUsnUcQoOU69S-6XtXPx_-cvg8GeFqKBhOXuOnw/exec";
         
-        // --- FIREBASE INIT ---
+        // --- FIREBASE INIT (Optional Backup) ---
         let firebaseApp, db, auth;
         const appId = 'chem-game-html-final';
-
         try {
             const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
                 apiKey: "YOUR_API_KEY_HERE_IF_LOCAL",
                 authDomain: "YOUR_PROJECT.firebaseapp.com",
-                projectId: "YOUR_PROJECT_ID",
-                storageBucket: "YOUR_PROJECT.appspot.com",
-                messagingSenderId: "SENDER_ID",
-                appId: "APP_ID"
+                projectId: "YOUR_PROJECT_ID"
             };
-            
             if (!firebase.apps.length) {
                 firebaseApp = firebase.initializeApp(firebaseConfig);
             } else {
@@ -70,7 +81,7 @@
             db = firebase.firestore();
             auth = firebase.auth();
         } catch (e) {
-            console.warn("Firebase Init Warning:", e);
+            // console.warn("Firebase Init Warning:", e);
             db = null; auth = null;
         }
 
@@ -85,7 +96,8 @@
             CheckCircle2: ({size=24}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>,
             ChevronRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>,
             FileSpreadsheet: ({size=24}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 13h2"/><path d="M8 17h2"/><path d="M14 13h2"/><path d="M14 17h2"/></svg>,
-            CloudUpload: ({size=24, className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
+            CloudUpload: ({size=24, className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>,
+            Refresh: ({size=24, className=""}) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
         };
 
         // --- DATA ---
@@ -143,6 +155,12 @@
             MEMORY_ELEMENTS: 'elements',
             GROUP_ORDER: 'group_order',
             MEMORY_IONS: 'ions',
+        };
+
+        const GAME_TYPE_LABELS = {
+            'elements': '元素配對',
+            'group_order': '週期表排序',
+            'ions': '離子配對'
         };
 
         const PRAISE_MESSAGES = [
@@ -416,35 +434,64 @@
 
         const Leaderboard = () => {
             const [scores, setScores] = React.useState([]);
+            const [loading, setLoading] = React.useState(true);
+            const [error, setError] = React.useState(null);
+            const [filterType, setFilterType] = React.useState('all'); // all, elements, group_order, ions
             
-            React.useEffect(() => {
-                if (!db) {
-                    console.warn("Firestore not available");
-                    return;
+            const fetchScores = React.useCallback(async () => {
+                setLoading(true);
+                setError(null);
+                try {
+                    const response = await fetch(GOOGLE_SCRIPT_URL);
+                    if (!response.ok) throw new Error("網路回應不正確");
+                    const data = await response.json();
+                    
+                    // 從 GAS 的 doGet 獲取資料
+                    // 資料結構預期為 Array of { date, playerName, gameType, score }
+                    const formattedData = data.map(item => ({
+                        ...item,
+                        score: parseInt(item.score) || 0,
+                        date: item.date || '' 
+                    })).sort((a, b) => b.score - a.score); // 預設由高到低排序
+
+                    setScores(formattedData);
+                } catch (err) {
+                    console.error("Fetch error:", err);
+                    setError("無法載入排行榜，請稍後再試。");
+                } finally {
+                    setLoading(false);
                 }
-                const scoresRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('scores');
-                
-                // Firestore compat way
-                const unsubscribe = scoresRef.orderBy('score', 'desc').limit(20)
-                    .onSnapshot((snapshot) => {
-                        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        setScores(data);
-                    }, (error) => {
-                        console.warn("Firestore query error (maybe index missing):", error);
-                        // Fallback without orderBy
-                         scoresRef.limit(20).onSnapshot((snap) => {
-                             const rawData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                             setScores(rawData.sort((a,b) => b.score - a.score).slice(0, 20));
-                         });
-                    });
-                return () => unsubscribe();
             }, []);
+
+            React.useEffect(() => {
+                fetchScores();
+            }, [fetchScores]);
+
+            // 過濾資料
+            const filteredScores = React.useMemo(() => {
+                if (filterType === 'all') return scores;
+                return scores.filter(s => s.gameType === GAME_TYPES[filterType] || s.gameType === GAME_TYPE_LABELS[GAME_TYPES[filterType]]); 
+                // 兼容英文 code 和中文 label
+            }, [scores, filterType]);
+
+            // 處理顯示的遊戲名稱
+            const getGameLabel = (type) => {
+                if (type === 'elements' || type === '元素配對') return '元素配對';
+                if (type === 'group_order' || type === '週期表排序') return '週期表排序';
+                if (type === 'ions' || type === '離子配對') return '離子配對';
+                return type;
+            };
 
             const copyToCSV = () => {
                 const header = "姓名,遊戲類型,分數,日期\n";
                 const rows = scores.map(s => {
-                    const date = s.timestamp ? new Date(s.timestamp.seconds * 1000).toLocaleDateString() : '-';
-                    return `${s.playerName},${s.gameType},${s.score},${date}`;
+                    let dateStr = '-';
+                    if (s.date) {
+                        try {
+                            dateStr = new Date(s.date).toLocaleDateString();
+                        } catch (e) { dateStr = s.date; }
+                    }
+                    return `${s.playerName},${getGameLabel(s.gameType)},${s.score},${dateStr}`;
                 }).join("\n");
                 const csvContent = header + rows;
                 const el = document.createElement('textarea');
@@ -453,30 +500,103 @@
                 el.select();
                 document.execCommand('copy');
                 document.body.removeChild(el);
-                alert("已複製 CSV 格式資料！您可以直接在 Google Sheet 中貼上。");
+                alert("已複製 CSV 格式資料！");
             };
 
             return (
-                <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2"><Icons.Trophy className="text-yellow-500" /> 排行榜</h2>
-                        <button onClick={copyToCSV} className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200 flex items-center gap-1">
-                            <Icons.FileSpreadsheet size={16}/> 複製到試算表
+                <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg p-6 flex flex-col h-[600px]">
+                    <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                        <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                            <Icons.Trophy className="text-yellow-500" /> 排行榜 (GAS)
+                        </h2>
+                        
+                        <div className="flex gap-2">
+                            <button onClick={fetchScores} className="p-2 bg-gray-100 rounded hover:bg-gray-200 transition" title="重新整理">
+                                <Icons.Refresh className={loading ? 'animate-spin' : ''} size={20}/>
+                            </button>
+                            <button onClick={copyToCSV} className="text-sm bg-green-100 text-green-700 px-3 py-2 rounded hover:bg-green-200 flex items-center gap-1 font-bold">
+                                <Icons.FileSpreadsheet size={16}/> 複製全部
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Filter Tabs */}
+                    <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                        <button 
+                            onClick={() => setFilterType('all')}
+                            className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition ${filterType === 'all' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                        >
+                            全部顯示
+                        </button>
+                        <button 
+                            onClick={() => setFilterType('MEMORY_ELEMENTS')}
+                            className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition ${filterType === 'MEMORY_ELEMENTS' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                        >
+                            元素配對
+                        </button>
+                        <button 
+                            onClick={() => setFilterType('GROUP_ORDER')}
+                            className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition ${filterType === 'GROUP_ORDER' ? 'bg-purple-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                        >
+                            週期表排序
+                        </button>
+                        <button 
+                            onClick={() => setFilterType('MEMORY_IONS')}
+                            className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition ${filterType === 'MEMORY_IONS' ? 'bg-pink-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                        >
+                            離子配對
                         </button>
                     </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead><tr className="bg-gray-50 text-left text-gray-600"><th className="p-3 rounded-l-lg">排名</th><th className="p-3">姓名</th><th className="p-3">遊戲</th><th className="p-3 text-right rounded-r-lg">分數</th></tr></thead>
-                            <tbody>
-                                {scores.length > 0 ? scores.map((s, i) => (
-                                    <tr key={s.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                        <td className="p-3 font-bold text-gray-500">{i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</td>
-                                        <td className="p-3 font-medium">{s.playerName}</td>
-                                        <td className="p-3 text-sm text-gray-500">{s.gameType === GAME_TYPES.MEMORY_ELEMENTS ? '元素配對' : s.gameType === GAME_TYPES.GROUP_ORDER ? '族群排序' : '離子配對'}</td>
-                                        <td className="p-3 text-right font-mono text-indigo-600 font-bold">{s.score}</td>
-                                    </tr>
-                                )) : (
-                                    <tr><td colSpan={4} className="p-8 text-center text-gray-400">連線中或尚無紀錄...</td></tr>
+
+                    {/* Table Content */}
+                    <div className="overflow-y-auto custom-scrollbar flex-grow bg-gray-50 rounded-lg border border-gray-200">
+                        <table className="w-full relative border-collapse">
+                            <thead className="sticky top-0 z-10">
+                                <tr className="bg-gray-200 text-left text-gray-700 font-bold shadow-sm">
+                                    <th className="p-3 w-16 text-center">排名</th>
+                                    <th className="p-3">姓名</th>
+                                    <th className="p-3">遊戲</th>
+                                    <th className="p-3 text-right">分數</th>
+                                    <th className="p-3 text-right text-xs text-gray-500">日期</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white">
+                                {loading ? (
+                                    <tr><td colSpan={5} className="p-8 text-center text-gray-500">
+                                        <div className="flex justify-center items-center gap-2">
+                                            <div className="w-4 h-4 bg-indigo-500 rounded-full animate-bounce"></div>
+                                            <div className="w-4 h-4 bg-indigo-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                                            <div className="w-4 h-4 bg-indigo-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                                        </div>
+                                        <span className="text-sm mt-2 block">正在從 Google Sheet 讀取資料...</span>
+                                    </td></tr>
+                                ) : error ? (
+                                    <tr><td colSpan={5} className="p-8 text-center text-red-500">{error}</td></tr>
+                                ) : filteredScores.length > 0 ? (
+                                    filteredScores.map((s, i) => (
+                                        <tr key={i} className="border-b border-gray-100 hover:bg-indigo-50 transition">
+                                            <td className="p-3 text-center font-bold text-gray-500">
+                                                {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
+                                            </td>
+                                            <td className="p-3 font-medium text-gray-800">{s.playerName}</td>
+                                            <td className="p-3 text-sm">
+                                                <span className={`px-2 py-1 rounded text-xs font-bold 
+                                                    ${getGameLabel(s.gameType) === '元素配對' ? 'bg-blue-100 text-blue-700' : 
+                                                      getGameLabel(s.gameType) === '週期表排序' ? 'bg-purple-100 text-purple-700' : 
+                                                      'bg-pink-100 text-pink-700'}`}>
+                                                    {getGameLabel(s.gameType)}
+                                                </span>
+                                            </td>
+                                            <td className="p-3 text-right font-mono text-indigo-600 font-bold text-lg">{s.score}</td>
+                                            <td className="p-3 text-right text-xs text-gray-400">
+                                                {s.date ? new Date(s.date).toLocaleDateString() : '-'}
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr><td colSpan={5} className="p-8 text-center text-gray-400">
+                                        尚無此分類的紀錄，快去挑戰吧！
+                                    </td></tr>
                                 )}
                             </tbody>
                         </table>
@@ -488,23 +608,16 @@
         const App = () => {
             const [currentScreen, setCurrentScreen] = React.useState('menu'); 
             const [activeGame, setActiveGame] = React.useState(null);
-            const [user, setUser] = React.useState(null);
             const [playerName, setPlayerName] = React.useState('');
             const [tempScore, setTempScore] = React.useState(null);
             const [uploadStatus, setUploadStatus] = React.useState('idle');
+            const [user, setUser] = React.useState(null); // Firebase user (optional)
 
+            // Firebase Auth Listener (Optional)
             React.useEffect(() => {
-                const initAuth = async () => {
-                    if (!auth) return;
-                    
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await auth.signInWithCustomToken(__initial_auth_token);
-                    } else {
-                        await auth.signInAnonymously();
-                    }
-                };
-                initAuth();
-                if (auth) auth.onAuthStateChanged(setUser);
+                if(auth) {
+                    auth.onAuthStateChanged(setUser);
+                }
             }, []);
 
             const handleStartGame = (type) => {
@@ -520,29 +633,32 @@
 
             const handleGameComplete = async (score) => {
                 setTempScore(score);
+                
+                // 轉換遊戲名稱以配合 GAS 的顯示 (中文名稱比較直觀)
                 const gameTypeName = activeGame === GAME_TYPES.MEMORY_ELEMENTS ? '元素配對' : 
-                                   activeGame === GAME_TYPES.GROUP_ORDER ? '族群排序' : '離子配對';
+                                   activeGame === GAME_TYPES.GROUP_ORDER ? '週期表排序' : '離子配對';
 
-                if (user && playerName && db) {
+                // 1. 嘗試寫入 Firebase (備份)
+                if (user && db) {
                     try {
-                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('scores').add({
+                        db.collection('artifacts').doc(appId).collection('public').doc('data').collection('scores').add({
                             playerName: playerName,
                             gameType: activeGame,
                             score: score,
                             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                             userId: user.uid
                         });
-                    } catch (e) {
-                        console.error("Firestore save error:", e);
-                    }
+                    } catch(e) { console.warn("Firebase save failed", e); }
                 }
 
-                if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL.startsWith('http')) {
+                // 2. 上傳到 Google Apps Script (主要)
+                if (GOOGLE_SCRIPT_URL) {
                     setUploadStatus('uploading');
                     try {
+                        // 使用 fetch POST + no-cors
                         await fetch(GOOGLE_SCRIPT_URL, {
                             method: 'POST',
-                            mode: 'no-cors',
+                            mode: 'no-cors', 
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 playerName: playerName,
@@ -550,34 +666,37 @@
                                 score: score
                             })
                         });
+                        
                         setUploadStatus('done');
                     } catch (e) {
                         console.error("GAS upload error:", e);
                         setUploadStatus('error');
                     }
                 }
-                setTimeout(() => setCurrentScreen('scores'), 2500);
+                
+                // 3秒後跳轉到排行榜
+                setTimeout(() => setCurrentScreen('scores'), 3000);
             };
 
             return (
                 <div className="max-w-4xl mx-auto flex flex-col items-center p-4">
-                    <header className="flex justify-between items-center w-full mb-8 bg-white/80 backdrop-blur p-4 rounded-2xl shadow-sm">
+                    <header className="flex justify-between items-center w-full mb-8 bg-white/80 backdrop-blur p-4 rounded-2xl shadow-sm border border-white/50">
                         <div className="flex items-center gap-3">
                             <div className="bg-indigo-600 p-2 rounded-lg text-white"><Icons.FlaskConical size={24} /></div>
                             <h1 className="text-xl font-bold text-indigo-900 tracking-tight">元素大師 Chemistry Master by駿佾師</h1>
                         </div>
                         <div className="flex gap-2">
-                            <button onClick={() => setCurrentScreen('menu')} className={`p-2 rounded-lg transition ${currentScreen === 'menu' ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-gray-100 text-gray-500'}`}><Icons.Home size={20} /></button>
-                            <button onClick={() => setCurrentScreen('scores')} className={`p-2 rounded-lg transition ${currentScreen === 'scores' ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-gray-100 text-gray-500'}`}><Icons.Trophy size={20} /></button>
+                            <button onClick={() => setCurrentScreen('menu')} className={`p-2 rounded-lg transition ${currentScreen === 'menu' ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-gray-100 text-gray-500'}`} title="回首頁"><Icons.Home size={20} /></button>
+                            <button onClick={() => setCurrentScreen('scores')} className={`p-2 rounded-lg transition ${currentScreen === 'scores' ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-gray-100 text-gray-500'}`} title="排行榜"><Icons.Trophy size={20} /></button>
                         </div>
                     </header>
 
                     {currentScreen === 'menu' && (
-                        <div className="w-full max-w-md animate-fade-in bg-white p-8 rounded-2xl shadow-xl text-center">
+                        <div className="w-full max-w-md animate-fade-in bg-white p-8 rounded-2xl shadow-xl text-center border border-indigo-50">
                             <h2 className="text-2xl font-bold mb-6 text-gray-800">準備好挑戰了嗎？</h2>
                             <div className="mb-6 text-left">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">輸入你的班級座號姓名，登分會以最高的那一個計算!</label>
-                                <input type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value)} placeholder="例如：80567" className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                <input type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value)} placeholder="例如：80567" className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none transition" />
                             </div>
                             <div className="space-y-3">
                                 <button onClick={() => handleStartGame(GAME_TYPES.MEMORY_ELEMENTS)} className="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-bold shadow-lg flex items-center justify-between px-6 hover:scale-[1.02] transition">
@@ -596,16 +715,17 @@
                     {currentScreen === 'game' && (
                         <div className="w-full flex flex-col items-center animate-fade-in">
                             {tempScore !== null ? (
-                                <div className="bg-white p-8 rounded-2xl shadow-xl text-center w-full max-w-md">
+                                <div className="bg-white p-8 rounded-2xl shadow-xl text-center w-full max-w-md border border-indigo-50">
                                     <h2 className="text-3xl font-bold text-indigo-600 mb-4">挑戰完成！</h2>
                                     <p className="text-gray-600 mb-2">您的得分</p>
                                     <div className="text-6xl font-mono font-bold text-yellow-500 mb-6">{tempScore}</div>
-                                    <div className="flex items-center justify-center gap-2 text-sm text-gray-500 bg-gray-50 py-2 rounded-lg">
+                                    <div className="flex items-center justify-center gap-2 text-sm text-gray-500 bg-gray-50 py-3 px-4 rounded-lg">
                                         {uploadStatus === 'idle' && <span>成績結算中...</span>}
                                         {uploadStatus === 'uploading' && <span className="flex items-center gap-2 text-blue-600"><Icons.CloudUpload className="animate-bounce" size={16} /> 正在上傳至 Google Sheet...</span>}
                                         {uploadStatus === 'done' && <span className="flex items-center gap-2 text-green-600 font-bold"><Icons.CheckCircle2 size={16} /> 成績已上傳成功！</span>}
-                                        {uploadStatus === 'error' && <span className="text-red-500">上傳失敗，請檢查網路</span>}
+                                        {uploadStatus === 'error' && <span className="text-red-500">上傳可能失敗 (請檢查網路)</span>}
                                     </div>
+                                    <p className="text-xs text-gray-400 mt-2">即將跳轉至排行榜...</p>
                                 </div>
                             ) : (
                                 <>
